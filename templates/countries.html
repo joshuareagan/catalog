@@ -1,0 +1,65 @@
+<html>
+<head>
+<link rel=stylesheet type=text/css href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+<div class='header'>
+<div class='container'>
+  <div class='header-title'>
+    Catalog App
+  </div>
+
+  <div class='login'>
+    {% if loggedIn %}
+      <a href="{{url_for('gdisconnect')}}">Sign Out</a>
+    {% else %}
+      <a href="{{url_for('showLogin')}}">Sign In</a>
+    {% endif %}
+  </div>
+</div>
+</div>
+<div class='wrapper'>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class='flash'>
+          <strong> {{ message }} </strong>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <div class='countries-bar'>
+  <div class='countries-title'>Countries</div>
+    {% if loggedIn %}
+      <div class='add'>
+        <a href="{{url_for('newCountry')}}">New Country</a>
+      </div>
+    {% endif %}
+      {% if countries %}
+        {% for country in countries %}
+          <div class='country'>
+            <a href="{{url_for('countryOne', country_id=country.id)}}">
+              {{country.name}}</a>
+          {% if loggedIn == country.user_id %}
+            <div class='editdel'>
+              <a href="{{url_for('editCountry', country_id=country.id)}}">Edit</a> |
+              <a href="{{url_for('deleteCountry', country_id=country.id)}}">Delete</a>
+            </div>
+          {% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+  </div>
+  <div class='top-cities'>
+  <div class='top-cities-title'>Top Cities by Population</div>
+    {% if cities %}
+      {% for city in cities %}
+        <div class='city'>
+          <a href='{{url_for('cityOne', city_id=city.id)}}'>{{city.name}}</a> -- {{format(city.population, ',')}}
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

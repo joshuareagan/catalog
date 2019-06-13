@@ -1,0 +1,50 @@
+<html>
+<head>
+  <link rel=stylesheet type=text/css href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+
+<div class='header'>
+  <div class='container'>
+  <div class='header-title'>
+    Catalog App
+  </div>
+
+  <div class='login'>
+    {% if loggedIn %}
+      <a href="{{url_for('gdisconnect')}}">Sign Out</a>
+    {% else %}
+      <a href="{{url_for('showLogin')}}">Sign In</a>
+    {% endif %}
+  </div>
+</div>
+</div>
+
+<div class='wrapper'>
+<div class='title'>Add New City to {{country.name}}</div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+        <div class='flash'>
+          <strong> {{ message }} </strong>
+        </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+<div class='form'>
+  <form action="{{url_for('newCity', country_id=country.id)}}" method='post'>
+    Name:</br>
+    <input type='text' size='30' name='name'></br>
+    Population:</br>
+    <input type='text' size='30' name='pop'></br>
+    Description:</br>
+    <textarea class='space-below' cols='54' rows='6' name='desc'>Description here.</textarea></br>
+    <input type='submit' value='Create'>
+  </form>
+  <form action="{{url_for('countryOne', country_id=country.id)}}">
+    <input type="submit" value="Cancel">
+  </form>
+</div>
+</body>
+</html>

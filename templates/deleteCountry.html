@@ -1,0 +1,35 @@
+<html>
+<head>
+  <link rel=stylesheet type=text/css href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+
+<div class='header'>
+  <div class='container'>
+  <div class='header-title'>
+    Catalog App
+  </div>
+
+  <div class='login'>
+    {% if loggedIn %}
+      <a href="{{url_for('gdisconnect')}}">Sign Out</a>
+    {% else %}
+      <a href="{{url_for('showLogin')}}">Sign In</a>
+    {% endif %}
+  </div>
+</div>
+</div>
+
+<div class='wrapper'>
+<div class='title'>Delete Country {{country.name}}</div>
+<div class='form'>
+  <form action="{{url_for('deleteCountry', country_id=country.id)}}" method='post'>
+    Are you sure you want to delete {{country.name}}?
+    <input type='submit' value='Delete'>
+  </form>
+  <form action="{{url_for('countriesMain')}}">
+    <input type="submit" value="Cancel">
+  </form>
+</div>
+</body>
+</html>

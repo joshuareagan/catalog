@@ -1,0 +1,56 @@
+<html>
+<head>
+  <link rel=stylesheet type=text/css href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+
+<div class='header'>
+  <div class='container'>
+  <div class='header-title'>
+    Catalog App
+  </div>
+
+  <div class='login'>
+    {% if loggedIn %}
+      <a href="{{url_for('gdisconnect')}}">Sign Out</a>
+    {% else %}
+      <a href="{{url_for('showLogin')}}">Sign In</a>
+    {% endif %}
+  </div>
+</div>
+</div>
+
+<div class='wrapper'>
+  <div class='title'>{{city.name}}</div>
+  <div class='subtitle'>Located in {{country.name}}</div>
+
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class='flash'>
+          <strong> {{ message }} </strong>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+<div class='city'>
+  Population: {{format(city.population, ',')}}</br>
+  Description:</br>
+  <div class='description'>
+    {{city.description}}
+  </div>
+  {% if loggedIn == city.user_id %}
+    <div class='editdel'>
+      <a href="{{url_for('editCity', city_id=city.id)}}">Edit</a> |
+      <a href="{{url_for('deleteCity', city_id=city.id)}}">Delete</a>
+    </div></br>
+  {% endif %}
+</div>
+<div class='back'>
+  <a href="{{url_for('countryOne', country_id=country.id)}}">Back to {{country.name}}</a>
+</div>
+</div>
+</body>
+</html>
