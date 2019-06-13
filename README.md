@@ -38,7 +38,7 @@ value given to you by Google in the file `/templates/login.html`.
 You can install the program by cloning this repo from your command line:
 
 ```
-insert command here.
+$ git clone https://github.com/joshuareagan/catalog.git
 ```
 
 A database is included in the repo with a with a few cities already recorded, 
