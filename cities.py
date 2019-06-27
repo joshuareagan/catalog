@@ -26,14 +26,14 @@ from flask import session as login_session
 app = Flask(__name__)
 
 CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+    open('/var/www/catalog/client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "Catalog of Cities Application"
 
-engine = create_engine('sqlite:///cities.db')
+engine = create_engine('sqlite:///var/www/catalog/db/cities.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
-session = DBSession()
+# session = DBSession()
 
 
 # Anti-forgery state token created for each new session.
@@ -59,7 +59,7 @@ def gconnect():
 
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets('/var/www/catalog/client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -121,22 +121,28 @@ def gconnect():
 
 
 def createUser(login_session):
+    session = DBSession()
     newUser = User(username=login_session['username'],
                    email=login_session['email'])
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email=login_session['email']).one()
+    session.close()
     return user.id
 
 
 def getUserInfo(user_id):
+    session = DBSession()
     user = session.query(User).filter_by(id=user_id).one()
+    session.close()
     return user
 
 
 def getUserID(email):
     try:
+        session = DBSession()
         user = session.query(User).filter_by(email=email).one()
+        session.close()
         return user.id
     except NoResultFound:
         return None
@@ -174,14 +180,20 @@ def gdisconnect():
 
 def getCountry(x):
     try:
-        return session.query(Country).filter_by(id=x).one()
+        session = DBSession()
+        country = session.query(Country).filter_by(id=x).one()
+        session.close()
+        return country
     except NoResultFound:
         return None
 
 
 def getCity(x):
     try:
-        return session.query(City).filter_by(id=x).one()
+        session = DBSession()
+        city = session.query(City).filter_by(id=x).one()
+        session.close()
+        return city
     except NoResultFound:
         return None
 
@@ -203,8 +215,10 @@ def loggedIn():
 @app.route('/')
 @app.route('/countries')
 def countriesMain():
+    session = DBSession()
     countries = session.query(Country)
     cities = session.query(City).order_by(desc('population')).limit(10)
+    session.close()
     return render_template('countries.html', countries=countries,
                            cities=cities, format=format, loggedIn=loggedIn())
 
@@ -212,6 +226,7 @@ def countriesMain():
 # API endpoint for a dump of all city data, by country.
 @app.route('/countries/JSON')
 def countriesJSON():
+    session = DBSession()
     countries = session.query(Country)
     result = {}
     for country in countries:
@@ -226,6 +241,7 @@ def countriesJSON():
                 'population': city.population,
                 'description': city.description
             }
+    session.close()
     return jsonify(result)
 
 
@@ -233,8 +249,10 @@ def countriesJSON():
 @app.route('/country/<int:country_id>/')
 def countryOne(country_id):
     country = getCountry(country_id)
+    session = DBSession()
     cities = session.query(City).filter_by(
-        country_id=country_id).order_by(desc('population'))
+            country_id=country_id).order_by(desc('population'))
+    session.close()
     return render_template('country.html', country=country,
                            cities=cities, format=format, loggedIn=loggedIn())
 
@@ -262,12 +280,14 @@ def newCountry():
         if not loggedIn():
             flash("You must be logged in to add a country record.")
         elif request.form['name']:
+            session = DBSession()
             clean_name = clean(request.form['name'])
             country = Country(name=clean_name,
                               user_id=loggedIn())
             session.add(country)
             session.commit()
             flash("%s successfully added as a country." % country.name)
+            session.close()
         else:
             flash("Cannot add country without name.")
         return redirect(url_for('countriesMain'))
@@ -284,6 +304,7 @@ def newCity(country_id):
             flash("You must log in to add a city record.")
         elif (request.form['name'] and request.form['pop'] and
               request.form['desc'] and pop_int):
+                session = DBSession()
                 clean_name = clean(request.form['name'])
                 clean_desc = clean(request.form['desc'])
                 city = City(name=clean_name,
@@ -293,8 +314,11 @@ def newCity(country_id):
                             user_id=loggedIn())
                 session.add(city)
                 session.commit()
-                flash("%s successfully added as a city." % city.name)
-                return redirect(url_for('cityOne', city_id=city.id))
+                city_name = city.name
+                city_id = city.id
+                session.close()
+                flash("%s successfully added as a city." % city_name)
+                return redirect(url_for('cityOne', city_id=city_id))
         else:
             if not pop_int:
                 flash("Population must be a number.")
@@ -315,9 +339,11 @@ def editCountry(country_id):
             flash("You are not authorized to modify the record for %s."
                   % country.name)
         elif request.form['name']:
+            session = DBSession()
             country.name = clean(request.form['name'])
             session.add(country)
             session.commit()
+            session.close()
         else:
             flash("Country must have a name.")
         return redirect(url_for('countriesMain'))
@@ -337,11 +363,13 @@ def editCity(city_id):
                   % city.name)
         elif (request.form['name'] and request.form['pop'] and
               request.form['desc'] and pop_int):
+                session = DBSession()
                 city.name = clean(request.form['name'])
                 city.population = pop_int
                 city.description = clean(request.form['desc'])
                 session.add(city)
                 session.commit()
+                session.close()
                 return redirect(url_for('cityOne', city_id=city_id))
         else:
             if not pop_int:
@@ -362,12 +390,14 @@ def deleteCountry(country_id):
         if loggedIn() != country.user_id:
             flash("You are not authorized to delete %s." % country.name)
         elif country:
+            session = DBSession()
             cities = session.query(City).filter_by(
                 country_id=country_id).all()
             for city in cities:
                 session.delete(city)
             session.delete(country)
             session.commit()
+            session.close()
         return redirect(url_for('countriesMain'))
     return render_template('deleteCountry.html', country=country,
                            loggedIn=loggedIn())
@@ -382,8 +412,10 @@ def deleteCity(city_id):
         if loggedIn() != city.user_id:
             flash("You are not authorized to delete %s." % city.name)
         elif city:
+            session = DBSession()
             session.delete(city)
             session.commit()
+            session.close()
         return redirect(url_for('countryOne', country_id=country.id))
     return render_template('deleteCity.html', country=country, city=city,
                            loggedIn=loggedIn())
@@ -391,5 +423,5 @@ def deleteCity(city_id):
 
 if __name__ == '__main__':
     app.secret_key = "This key is not all that secure"
-    app.debug = True
-    app.run(host='0.0.0.0', port=8000)
+    # app.debug = True
+    app.run()

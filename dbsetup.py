@@ -48,6 +48,6 @@ class City(Base):
         }
 
 
-engine = create_engine('sqlite:///cities.db')
+engine = create_engine('sqlite:///var/www/catalog/db/cities.db')
 
 Base.metadata.create_all(engine)
