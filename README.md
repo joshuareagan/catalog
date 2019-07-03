@@ -85,3 +85,9 @@ Root login to the server has been disabled, and `git` was also installed.
 
 To get started using the app, go to [http://reagandev.com](http://reagandev.com) 
 and login using your Google credentials. Have fun!
+
+## Resources used
+
+I followed the instructions from 
+[this page](https://www.digitalocean.com/community/tutorials/how-to-deploy-a-flask-application-on-an-ubuntu-vps) 
+to get my server up and running.
