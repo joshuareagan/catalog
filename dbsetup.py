@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
+# import psycopg2
 
 Base = declarative_base()
 
@@ -48,6 +49,6 @@ class City(Base):
         }
 
 
-engine = create_engine('sqlite:///var/www/catalog/db/cities.db')
+engine = create_engine('postgresql://catalog:notagoodpassword@localhost:5432/cities')
 
 Base.metadata.create_all(engine)

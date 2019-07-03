@@ -1,19 +1,43 @@
-# Udacity Item Catalog Project
+# Udacity Serv Config Project
 
 ## Project Description
 
-This repo contains code written to fulfill the "Item Catalog" project in 
-fulfillment of Udicity's Full Stack Developer Nanodegree program. The idea 
-is to have a CRUD app that allows one to manage items relative to a set of 
-categories. My implementation uses cities as the 'objects' and countries as 
-their 'categories'.
+This repo contains code written to fulfill the "Linux Server Configuration" 
+project in fulfillment of Udicity's Full Stack Developer Nanodegree program. 
+The server is set up to serve the CRUD app we made in the last project.
 
-Each city is in a country (naturally), and has a population and a description 
-recorded.
+## Website and Server Details
+
+For hosting, I used a Digital Ocean droplet hosted at ip address 104.248.4.1. 
+The URL to reach this app and run it correctly is 
+[http://reagandev.com](http://reagandev.com).
+
+The server used is `apache2`, so I first installed that. Then, to use a Flask 
+app with `apache2`, I downloaded and installed `mod_wsgi` for python 3. Then I 
+enabled `mod_wsgi` as follows:
+
+```
+$ sudo apt-get install apache2
+$ sudo apt-get install libapache2-mod-wsgi-py3
+$ sudo a2enmod wsgi
+```
+
+Next I created a directory for my flask app at `/var/www/catalog`, and put my 
+app there. Then I created a virtual environment for my app's dependencies, 
+using `virtualenv`. From the `/var/www/catalog` directory, I ran:
+
+```
+$ sudo pip install virtualenv
+$ sudo virtualenv venv
+$ source venv/bin/activate
+```
+
+With `venv` as the virtual environment, I installed all the Python 3 
+dependencies needed for the app.
 
 ## Dependencies
 
-This app uses Python 3 and the following Python libraries:
+The CRUD app uses Python 3 and the following Python libraries:
 
 1. Flask
 1. SQLAlchemy
@@ -21,8 +45,9 @@ This app uses Python 3 and the following Python libraries:
 1. oauth2client
 1. httplib2
 1. Requests
+1. psycopg2
 
-Make sure these are installed before running the program.
+Naturally all of these must be installed before running the app.
 
 Because `cities.py` uses Google for third party authentication, one also needs 
 a `client_secrets.json` file from Google in order to use their Oauth2 API. You 
@@ -33,73 +58,30 @@ here](https://developers.google.com/identity/protocols/OAuth2). Once you set up
 access to Google's API make sure to change the value of `client_id` to the 
 value given to you by Google in the file `/templates/login.html`.
 
-## Setup
+## Database Setup
 
-You can install the program by cloning this repo from your command line:
+The app uses a postgresql database, so I installed that. Then I created a 
+postgre user, `catalog`, and a database, `cities`. My catalog CRUD app accesses `cities` using the user `catalog`.
 
-```
-$ git clone https://github.com/joshuareagan/catalog.git
-```
+## Server Settings
 
-A database is included in the repo with a with a few cities already recorded, 
-`cities.db`. If you don't want to bother setting up your own database then you 
-can skip the next step.
-
-If you want to start with an empty database rather than use the one supplied, 
-then delete `cities.db` and run `dbsetup.py` as follows:
+In order to set up a virtual host, I created and adjusted the settings of the 
+config file `/etc/apache2/sites-available/catalog.conf`. Then I enabled the 
+virtual host:
 
 ```
-$ python dbsetup.py
+$ sudo a2ensite catalog
 ```
+
+Then I needed to restart the server to put those settings into effect:
+
+```
+sudo service apache2 restart
+```
+
+Root login to the server has been disabled, and `git` was also installed.
 
 ## Usage
 
-Next, you can start the application by entering the following:
-
-```
-$ python cities.py
-```
-
-### Browser
-
-Now it should be serving the app locally on port 8000. You can get to it by 
-entering the following in your browser:
-
-```
-http://localhost:8000/
-```
-
-You won't be able to create, modify, or delete any records unless you sign in. 
-You can sign in using your Google account. Just click the `Sign In` link and 
-follow the instructions.
-
-Once you're signed in, you won't be able to modify or delete records that you 
-didn't create. But you will be able to create your own new records, and modify 
-or delete those.
-
-### JSON
-
-You can do two sorts of JSON queries: (1) you can request data on all cities, 
-broken down by country, and (2) you can request all data on a single city.
-
-For the former, you can test it with `curl` from the command line:
-
-```
-$ curl -X GET "http://localhost:8000/countries/JSON"
-```
-
-If you just want information on a single city, make the same request on the URL 
-`http://localhost:8000/city/XX/JSON`, but replace `XX` with the `city_id` number. 
-For example, using `curl` again:
-
-```
-$ curl -X GET "http://localhost:8000/city/3/JSON"
-{
-  "id": 3, 
-  "country_id": 1, 
-  "description": "Dallas is a big city in northeastern Texas. It's really spread out!", 
-  "name": "Dallas", 
-  "population": 1345047
-}
-```
-
+To get started using the app, go to [http://reagandev.com](http://reagandev.com) 
+and login using your Google credentials. Have fun!
